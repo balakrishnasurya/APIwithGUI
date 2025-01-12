@@ -119,7 +119,7 @@ def index():
 def result():
     return render_template("result.html")
 
-@app.route("/api/analyze", methods=["POST"])
+@app.route("/api/predict", methods=["POST"])
 def analyze_image():
     try:
         if 'image' not in request.files:
@@ -129,7 +129,33 @@ def analyze_image():
         if not uploaded_file.mimetype.startswith('image/'):
             return jsonify({'error': 'Invalid file type'}), 400
 
-        # Rest of your image processing code...
+        # Convert image to base64
+        img_data = uploaded_file.read()
+        img_base64 = base64.b64encode(img_data)
+
+        # Reuse your existing image processing functions
+        def stringToImage(base64_string):
+            imgdata = base64.b64decode(base64_string)
+            image = Image.open(io.BytesIO(imgdata))
+            return image
+
+        # Process image and compute features
+        opencvImage = cv2.cvtColor(np.array(stringToImage(img_base64)), cv2.COLOR_RGB2BGR)
+        norm_image = np.array(opencvImage, dtype=np.float32) / 255.0
+
+        # Compute features
+        var = np.var(norm_image, axis=None)
+        sk = skew(norm_image, axis=None)
+        kur = kurtosis(norm_image, axis=None)
+        ent = entropy(norm_image, axis=None) / 100
+
+        # Validate features
+        if not np.isfinite(var) or not np.isfinite(sk) or not np.isfinite(kur) or not np.isfinite(ent):
+            return jsonify({'error': 'Invalid feature values computed'}), 400
+
+        # Predict
+        result = clf.predict(np.array([[var, sk, kur, ent]]))
+        out = "Real Currency" if result[0] == 0 else "Fake Currency"
         
         return jsonify({
             'result': out,
