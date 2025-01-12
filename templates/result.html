@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Authentication Result</title>
+</head>
+<body>
+    <h1>Analysis Result</h1>
+    <div>
+        <h3>Original Image:</h3>
+        {{ original_image | safe }}
+        
+        <h3>Edge Detection:</h3>
+        {{ edge_image | safe }}
+        
+        <h3>Features:</h3>
+        <ul>
+            <li>Variance: {{ variance }}</li>
+            <li>Skewness: {{ skew }}</li>
+            <li>Kurtosis: {{ kurtosis }}</li>
+            <li>Entropy: {{ entropy }}</li>
+        </ul>
+        
+        <h2>Result: {{ result }}</h2>
+    </div>
+    <a href="/">Back to Upload</a>
+</body>
+</html>
